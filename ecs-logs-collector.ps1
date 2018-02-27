@@ -304,8 +304,6 @@ Function disable_ecs_agent_debug{
             Restart-Service AmazonECS
             Write-Host "OK" -foregroundcolor "green" 
         } 
-        
-        
     }
     catch {
         Write-Error "Failed to enable debug mode"
