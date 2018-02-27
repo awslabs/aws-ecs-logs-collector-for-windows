@@ -15,7 +15,7 @@
     Run with -RunMode Debug to Collect 'brief' logs and also enables debug mode for the Docker daemon and the Amazon ECS container agent.
     Run with -RunMode DebugOnly to enable debug mode for the Docker daemon and the Amazon ECS container agent without collecting logs
     Run with -RunMode DisableDebugOnly to disable debug mode for the Docker daemon and the Amazon ECS container agent without collecting logs
-	Default script RunMode is Brief mode.
+    Default script RunMode is Brief mode.
 .NOTES
     You need to run this script with Elevated permissions to allow for the collection of the installed applications list
 .EXAMPLE 
@@ -45,9 +45,9 @@ $info_system="$infodir\system"
 Function is_elevated{
     If (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
     [Security.Principal.WindowsBuiltInRole] "Administrator")) {
-	Write-warning "This script requires elevated privileges to copy registry keys to the ECS logs collector folder."
-	Write-Host "Please re-launch as Administrator." -foreground "red" -background "black"
-	break
+    Write-warning "This script requires elevated privileges to copy registry keys to the ECS logs collector folder."
+    Write-Host "Please re-launch as Administrator." -foreground "red" -background "black"
+    break
     }
 }
 
@@ -276,7 +276,9 @@ Function disable_docker_debug{
 Function enable_ecs_agent_debug{
     try {
         Write-Host "Enabling debug mode for the Amazon ECS container agent"
-        if ($Env:ECS_LOGLEVEL -eq "debug"){
+        $key="HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+        $loglevel = (Get-ItemProperty -Path $key -Name ECS_LOGLEVEL -ErrorAction SilentlyContinue).ECS_LOGLEVEL
+        if ($loglevel -eq "debug"){
             Write-Host "Debug mode already enabled" -foregroundcolor "yellow"
         }
         else {
@@ -284,7 +286,7 @@ Function enable_ecs_agent_debug{
             Write-Host "Restarting the Amazon ECS container agent to enable debug mode"
             Restart-Service AmazonECS
             Write-Host "OK" -foregroundcolor "green" 
-        }     
+        }
     }
     catch {
         Write-Error "Failed to enable debug mode"
@@ -295,11 +297,13 @@ Function enable_ecs_agent_debug{
 Function disable_ecs_agent_debug{
     try {
         Write-Host "Disabling debug mode for the Amazon ECS container agent"
-        if ($Env:ECS_LOGLEVEL -ne "debug"){
+        $key="HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+        $loglevel = (Get-ItemProperty -Path $key -Name ECS_LOGLEVEL -ErrorAction SilentlyContinue).ECS_LOGLEVEL
+        if ($loglevel -ne "debug"){
             Write-Host "Debug mode already disabled" -foregroundcolor "yellow"
         }
         else {
-            [Environment]::SetEnvironmentVariable("ECS_LOGLEVEL", "info", "Machine")
+            [Environment]::SetEnvironmentVariable("ECS_LOGLEVEL", "", "Machine")
             Write-Host "Restarting the Amazon ECS container agent to disable debug mode"
             Restart-Service AmazonECS
             Write-Host "OK" -foregroundcolor "green" 
