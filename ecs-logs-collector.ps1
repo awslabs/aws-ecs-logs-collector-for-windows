@@ -310,7 +310,7 @@ Function disable_ecs_agent_debug{
         } 
     }
     catch {
-        Write-Error "Failed to enable debug mode"
+        Write-Error "Failed to disable debug mode"
         Break
     }
 }
