@@ -394,6 +394,6 @@ if ($RunMode -eq "Brief"){
     Write-Host "Disabling Debug for ECS and Docker" -foregroundcolor "blue"
     disable_debug
 } else {
-    Write-Host "You need to specify either Brief, Debug or DebugOnly RunMode" -ForegroundColor "red" 
+    Write-Host "You need to specify either Brief, Debug, DebugOnly, or DisableDebugOnly RunMode" -ForegroundColor "red" 
     Break
 }
