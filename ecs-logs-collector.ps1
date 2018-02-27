@@ -14,6 +14,7 @@
     Run without parameters to Gather basic operating system, Docker daemon, and Amazon ECS container agent logs. 
     Run with -RunMode Debug to Collect 'brief' logs and also enables debug mode for the Docker daemon and the Amazon ECS container agent.
     Run with -RunMode DebugOnly to enable debug mode for the Docker daemon and the Amazon ECS container agent without collecting logs
+    Run with -RunMode DisableDebugOnly to disable debug mode for the Docker daemon and the Amazon ECS container agent without collecting logs
 	Default script RunMode is Brief mode.
 .NOTES
     You need to run this script with Elevated permissions to allow for the collection of the installed applications list
@@ -24,7 +25,7 @@
     ecs-log-collector.ps1 -RunMode Debug
     Collects 'brief' logs and also enables debug mode for the Docker daemon and the Amazon ECS container agent.
 .PARAMETER RunMode
-    Defines what type of collection will be run(Brief, Debug or DebugOnly) default mode is Brief.
+    Defines what type of collection will be run(Brief, Debug, DebugOnly or DisableDebugOnly) default mode is Brief.
 #>
 
 param(
@@ -255,6 +256,23 @@ Function enable_docker_debug{
     }
 }
 
+Function disable_docker_debug{
+    try {
+        Write-Host "Disabling debug mode for the Docker Service"
+        if (sc.exe qc docker | where-object {$_ -like '*-D*'}){
+            sc.exe config docker binPath= "C:\Program Files\Docker\dockerd.exe --run-service"
+            Write-Host "OK" -foregroundcolor "green"    
+        }
+        else {
+            Write-Host "Debug mode already disabled" -foregroundcolor "yellow"
+        } 
+    }
+    catch {
+        Write-Error "Failed to disable debug mode"
+        Break
+    }
+}
+
 Function enable_ecs_agent_debug{
     try {
         Write-Host "Enabling debug mode for the Amazon ECS container agent"
@@ -264,8 +282,28 @@ Function enable_ecs_agent_debug{
         else {
             [Environment]::SetEnvironmentVariable("ECS_LOGLEVEL", "debug")
             Write-Host "Restarting the Amazon ECS container agent to enable debug mode"
-            Stop-ScheduledTask -TaskPath \Microsoft\Windows\PowerShell\ScheduledJobs\ -TaskName ECS-Agent-Init
-            Start-ScheduledTask -TaskPath \Microsoft\Windows\PowerShell\ScheduledJobs\ -TaskName ECS-Agent-Init
+            Restart-Service AmazonECS
+            Write-Host "OK" -foregroundcolor "green" 
+        } 
+        
+        
+    }
+    catch {
+        Write-Error "Failed to enable debug mode"
+        Break
+    }
+}
+
+Function disable_ecs_agent_debug{
+    try {
+        Write-Host "Disabling debug mode for the Amazon ECS container agent"
+        if ($Env:ECS_LOGLEVEL -ne "debug"){
+            Write-Host "Debug mode already disabled" -foregroundcolor "yellow"
+        }
+        else {
+            [Environment]::SetEnvironmentVariable("ECS_LOGLEVEL", "info")
+            Write-Host "Restarting the Amazon ECS container agent to disable debug mode"
+            Restart-Service AmazonECS
             Write-Host "OK" -foregroundcolor "green" 
         } 
         
@@ -330,7 +368,10 @@ Function enable_debug{
     enable_ecs_agent_debug
 }
 
-
+Function disable_debug{
+    disable_docker_debug
+    disable_ecs_agent_debug
+}
 
     
 
@@ -346,10 +387,12 @@ if ($RunMode -eq "Brief"){
     enable_debug
     collect_brief
     pack
-    
 } elseif ($RunMode -eq "DebugOnly"){
     Write-Host "Enabling Debug for ECS and Docker" -foregroundcolor "blue"
     enable_debug
+} elseif ($RunMode -eq "DisableDebugOnly"){
+    Write-Host "Disabling Debug for ECS and Docker" -foregroundcolor "blue"
+    disable_debug
 } else {
     Write-Host "You need to specify either Brief, Debug or DebugOnly RunMode" -ForegroundColor "red" 
     Break
