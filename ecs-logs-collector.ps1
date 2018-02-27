@@ -284,9 +284,7 @@ Function enable_ecs_agent_debug{
             Write-Host "Restarting the Amazon ECS container agent to enable debug mode"
             Restart-Service AmazonECS
             Write-Host "OK" -foregroundcolor "green" 
-        } 
-        
-        
+        }     
     }
     catch {
         Write-Error "Failed to enable debug mode"
