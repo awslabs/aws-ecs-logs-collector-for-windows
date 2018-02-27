@@ -280,7 +280,7 @@ Function enable_ecs_agent_debug{
             Write-Host "Debug mode already enabled" -foregroundcolor "yellow"
         }
         else {
-            [Environment]::SetEnvironmentVariable("ECS_LOGLEVEL", "debug")
+            [Environment]::SetEnvironmentVariable("ECS_LOGLEVEL", "debug", "Machine")
             Write-Host "Restarting the Amazon ECS container agent to enable debug mode"
             Restart-Service AmazonECS
             Write-Host "OK" -foregroundcolor "green" 
@@ -299,7 +299,7 @@ Function disable_ecs_agent_debug{
             Write-Host "Debug mode already disabled" -foregroundcolor "yellow"
         }
         else {
-            [Environment]::SetEnvironmentVariable("ECS_LOGLEVEL", "info")
+            [Environment]::SetEnvironmentVariable("ECS_LOGLEVEL", "info", "Machine")
             Write-Host "Restarting the Amazon ECS container agent to disable debug mode"
             Restart-Service AmazonECS
             Write-Host "OK" -foregroundcolor "green" 
