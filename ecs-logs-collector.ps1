@@ -45,9 +45,9 @@ $info_system="$infodir\system"
 Function is_elevated{
     If (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
     [Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Write-warning "This script requires elevated privileges to copy registry keys to the ECS logs collector folder."
-    Write-Host "Please re-launch as Administrator." -foreground "red" -background "black"
-    break
+        Write-warning "This script requires elevated privileges to copy registry keys to the ECS logs collector folder."
+        Write-Host "Please re-launch as Administrator." -foreground "red" -background "black"
+        break
     }
 }
 
