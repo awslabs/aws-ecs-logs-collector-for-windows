@@ -60,6 +60,8 @@ Function create_working_dir{
         New-Item -type directory -path $info_system\firewall -Force >$null
         New-Item -type directory -path $info_system\ecs -Force >$null
         New-Item -type directory -path $info_system\docker_log -Force >$null
+        New-Item -type directory -path $info_system\network\hns -Force >$null
+        New-Item -type directory -path $info_system\events -Force >$null
         Write-Host "OK" -ForegroundColor "green"
     }
     catch {
@@ -98,6 +100,46 @@ Function is_diskfull{
     }
     if ($percent -lt $threshold){
         Write-Error "C: drive only has $percent% free space, please ensure there is at least $threshold% free disk space to collect and store the log files" 
+        Break
+    }
+}
+
+Function get_windows_events{
+    try {
+        Write-Host "Collecting Windows events"
+        Copy-Item "$env:SystemDrive\Windows\System32\Winevt\Logs\Application.evtx" -Destination $info_system\events
+        Copy-Item "$env:SystemDrive\Windows\System32\Winevt\Logs\System.evtx" -Destination $info_system\events
+        Copy-Item "$env:SystemDrive\Windows\System32\Winevt\Logs\Microsoft-Windows-Containers*.evtx" -Destination $info_system\events
+        Copy-Item "$env:SystemDrive\Windows\System32\Winevt\Logs\Microsoft-Windows-Host-Network-Service*.evtx" -Destination $info_system\events
+        Copy-Item "$env:SystemDrive\Windows\System32\Winevt\Logs\Microsoft-Windows-Hyper-V-Compute*.evtx" -Destination $info_system\events
+
+        Write-Host "OK" -ForegroundColor "green"
+    }
+    catch {
+        Write-Error "Unable to collect Windows events"
+        Break
+    }
+}
+
+Function get_network_info{
+    try {
+        Write-Host "Collecting container network Information"
+        Get-HnsNetwork | Select Name, Type, Id, AddressPrefix > $info_system\network\hns\network.txt
+        Get-hnsnetwork | Convertto-json -Depth 20 >> $info_system\network\hns\network.txt
+        Get-hnsnetwork | % { Get-HnsNetwork -Id $_.ID -Detailed } | Convertto-json -Depth 20 >> $info_system\network\hns\networkdetailed.txt
+
+        Get-HnsEndpoint | Select IpAddress, MacAddress, IsRemoteEndpoint, State > $info_system\network\hns\endpoint.txt
+        Get-hnsendpoint | Convertto-json -Depth 20 >> $info_system\network\hns\endpoint.txt
+
+        Get-hnspolicylist | Convertto-json -Depth 20 > $info_system\network\hns\policy.txt
+
+        vfpctrl.exe /list-vmswitch-port > $info_system\network\ports.txt
+        ipconfig /allcompartments /all > $info_system\network\ip.txt
+        route print > $info_system\network\routes.txt
+        Write-Host "OK" -foregroundcolor "green"
+    }
+    catch {
+        Write-Error "Unable to collect container network information"
         Break
     }
 }
@@ -354,6 +396,8 @@ Function collect_brief{
     get_ecs_agent_logs
     get_containers_info
     get_docker_logs
+    get_windows_events
+    get_network_info
 }
 
 Function collect_debug{
