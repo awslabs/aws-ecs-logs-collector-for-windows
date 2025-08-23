@@ -59,6 +59,7 @@ Function create_working_dir{
         New-Item -type directory -path $info_system\docker -Force >$null
         New-Item -type directory -path $info_system\firewall -Force >$null
         New-Item -type directory -path $info_system\ecs -Force >$null
+        New-Item -type directory -path $info_system\gmsa\filelogs -Force >$null
         New-Item -type directory -path $info_system\docker_log -Force >$null
         New-Item -type directory -path $info_system\network\hns -Force >$null
         New-Item -type directory -path $info_system\events -Force >$null
@@ -112,7 +113,7 @@ Function get_windows_events{
         Copy-Item "$env:SystemDrive\Windows\System32\Winevt\Logs\Microsoft-Windows-Containers*.evtx" -Destination $info_system\events
         Copy-Item "$env:SystemDrive\Windows\System32\Winevt\Logs\Microsoft-Windows-Host-Network-Service*.evtx" -Destination $info_system\events
         Copy-Item "$env:SystemDrive\Windows\System32\Winevt\Logs\Microsoft-Windows-Hyper-V-Compute*.evtx" -Destination $info_system\events
-
+        Copy-Item "$env:SystemDrive\Windows\System32\Winevt\Logs\AWS-Windows-Containers.evtx" -Destination $info_system\events
         Write-Host "OK" -ForegroundColor "green"
     }
     catch {
@@ -247,6 +248,19 @@ Function get_ecs_agent_logs{
     }
     catch{
         Write-Error "Unable to collect ECS Agent logs"
+        Break
+    }
+}
+
+Function get_gmsa_logs{
+    try {
+        Write-Host "Collecting gMSA logs"
+        copy C:\programdata\amazon\gmsa-plugin\* $info_system\gmsa\filelogs\
+        Get-WinEvent -ProviderName gMSA | Export-CSV $info_system/gmsa/eventlogs.csv
+        Write-Host "OK" -foregroundcolor "green"
+    }
+    catch{
+        Write-Error "Unable to collect gmsa logs"
         Break
     }
 }
@@ -394,6 +408,7 @@ Function collect_brief{
     get_system_services
     get_docker_info
     get_ecs_agent_logs
+    get_gmsa_logs
     get_containers_info
     get_docker_logs
     get_windows_events
