@@ -113,7 +113,9 @@ Function get_windows_events{
         Copy-Item "$env:SystemDrive\Windows\System32\Winevt\Logs\Microsoft-Windows-Containers*.evtx" -Destination $info_system\events
         Copy-Item "$env:SystemDrive\Windows\System32\Winevt\Logs\Microsoft-Windows-Host-Network-Service*.evtx" -Destination $info_system\events
         Copy-Item "$env:SystemDrive\Windows\System32\Winevt\Logs\Microsoft-Windows-Hyper-V-Compute*.evtx" -Destination $info_system\events
-        Copy-Item "$env:SystemDrive\Windows\System32\Winevt\Logs\AWS-Windows-Containers.evtx" -Destination $info_system\events
+        if (Test-Path "$env:SystemDrive\Windows\System32\Winevt\Logs\AWS-Windows-Containers.evtx") {
+            Copy-Item "$env:SystemDrive\Windows\System32\Winevt\Logs\AWS-Windows-Containers.evtx" -Destination $info_system\events
+        }
         Write-Host "OK" -ForegroundColor "green"
     }
     catch {
@@ -255,8 +257,12 @@ Function get_ecs_agent_logs{
 Function get_gmsa_logs{
     try {
         Write-Host "Collecting gMSA logs"
-        copy C:\programdata\amazon\gmsa-plugin\* $info_system\gmsa\filelogs\
-        Get-WinEvent -ProviderName gMSA | Export-CSV $info_system/gmsa/eventlogs.csv
+        if (Test-Path "C:\programdata\amazon\gmsa-plugin\") {
+            copy C:\programdata\amazon\gmsa-plugin\* $info_system\gmsa\filelogs\
+        }
+        if (Get-WinEvent -ListProvider gMSA -ErrorAction SilentlyContinue) {
+            Get-WinEvent -ProviderName gMSA | Export-CSV $info_system/gmsa/eventlogs.csv
+        }
         Write-Host "OK" -foregroundcolor "green"
     }
     catch{
