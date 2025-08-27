@@ -5,7 +5,7 @@ This project was created to collect Amazon ECS log files and OS logs for trouble
 
 ## Supported Operating System
 
-Windows 2016
+Windows 2016, Windows 2019, Windows 2022, Windows 2025
 
 ## Collected information
 
@@ -24,9 +24,10 @@ Creates a collect.zip file in the same folder as the script
 ## Usage
 
 Run this script as an elevated user:
-
-# .\ecs-logs-collector.ps1
-
+```
+Invoke-WebRequest -OutFile ecs-logs-collector.ps1 https://raw.githubusercontent.com/awslabs/aws-ecs-logs-collector-for-windows/refs/heads/master/ecs-logs-collector.ps1
+.\ecs-logs-collector.ps1
+```
 
 The script can be used in normal(Brief) or debug mode.
 
@@ -84,10 +85,19 @@ OK
 Collecting ECS Agent logs
 OK
 
+Collecting gMSA logs
+OK
+
 Inspect running Docker containers and gather Amazon ECS container agent data
 OK
 
 Collecting Docker daemon logs
+OK
+
+Collecting Windows events
+OK
+
+Collecting container network Information
 OK
 
 Archiving gathered data
@@ -151,15 +161,23 @@ OK
 Collecting ECS Agent logs
 OK
 
+Collecting gMSA logs
+OK
+
 Inspect running Docker containers and gather Amazon ECS container agent data
 OK
 
 Collecting Docker daemon logs
 OK
 
-Archiving gathered data
+Collecting Windows events
 OK
 
+Collecting container network Information
+OK
+
+Archiving gathered data
+OK
 
 ## Contributing
 
